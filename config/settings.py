@@ -177,6 +177,12 @@ class Settings(BaseSettings):
         validation_alias="OLLAMA_BASE_URL",
     )
 
+    # ==================== LiteLLM Config ====================
+    litellm_base_url: str = Field(
+        default="http://localhost:4000/v1",
+        validation_alias="LITELLM_BASE_URL",
+    )
+
     # ==================== Model ====================
     # All Claude model requests are mapped to this single model (fallback)
     # Format: provider_type/model/name
@@ -204,6 +210,7 @@ class Settings(BaseSettings):
     gemini_proxy: str = Field(default="", validation_alias="GEMINI_PROXY")
     groq_proxy: str = Field(default="", validation_alias="GROQ_PROXY")
     cerebras_proxy: str = Field(default="", validation_alias="CEREBRAS_PROXY")
+    litellm_proxy: str = Field(default="", validation_alias="LITELLM_PROXY")
 
     # ==================== Provider Rate Limiting ====================
     provider_rate_limit: int = Field(default=40, validation_alias="PROVIDER_RATE_LIMIT")

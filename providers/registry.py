@@ -142,6 +142,12 @@ def _create_litellm(config: ProviderConfig, _settings: Settings) -> BaseProvider
     return LiteLLMProvider(config)
 
 
+def _create_openai(config: ProviderConfig, _settings: Settings) -> BaseProvider:
+    from providers.openai import OpenAIProvider
+
+    return OpenAIProvider(config)
+
+
 PROVIDER_FACTORIES: dict[str, ProviderFactory] = {
     "nvidia_nim": _create_nvidia_nim,
     "open_router": _create_open_router,
@@ -157,6 +163,7 @@ PROVIDER_FACTORIES: dict[str, ProviderFactory] = {
     "groq": _create_groq,
     "fireworks": _create_fireworks,
     "zai": _create_zai,
+    "openai": _create_openai,
     "lmstudio": _create_lmstudio,
     "llamacpp": _create_llamacpp,
     "ollama": _create_ollama,

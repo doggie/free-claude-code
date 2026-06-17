@@ -38,6 +38,8 @@ GROQ_DEFAULT_BASE = "https://api.groq.com/openai/v1"
 CEREBRAS_DEFAULT_BASE = "https://api.cerebras.ai/v1"
 # LiteLLM local proxy (OpenAI-compatible /v1/chat/completions endpoint).
 LITELLM_DEFAULT_BASE = "http://localhost:4000/v1"
+# Generic OpenAI-compatible provider (user-supplied URL + key).
+# No default base URL — the user must set OPENAI_BASE_URL.
 
 
 @dataclass(frozen=True, slots=True)
@@ -214,6 +216,16 @@ PROVIDER_CATALOG: dict[str, ProviderDescriptor] = {
             "native_anthropic",
             "rate_limit",
         ),
+    ),
+    "openai": ProviderDescriptor(
+        provider_id="openai",
+        transport_type="openai_chat",
+        credential_env="OPENAI_API_KEY",
+        credential_attr="openai_api_key",
+        default_base_url=None,
+        base_url_attr="openai_base_url",
+        proxy_attr="openai_proxy",
+        capabilities=("chat", "streaming", "tools", "thinking", "rate_limit"),
     ),
     "lmstudio": ProviderDescriptor(
         provider_id="lmstudio",

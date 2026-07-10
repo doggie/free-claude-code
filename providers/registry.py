@@ -82,6 +82,18 @@ def _create_ollama(config: ProviderConfig, _settings: Settings) -> BaseProvider:
     return OllamaProvider(config)
 
 
+def _create_openai(config: ProviderConfig, _settings: Settings) -> BaseProvider:
+    from providers.openai import OpenAICompatProvider
+
+    return OpenAICompatProvider(config)
+
+
+def _create_litellm(config: ProviderConfig, _settings: Settings) -> BaseProvider:
+    from providers.litellm import LiteLLMProvider
+
+    return LiteLLMProvider(config)
+
+
 def _create_kimi(config: ProviderConfig, _settings: Settings) -> BaseProvider:
     from providers.kimi import KimiProvider
 
@@ -154,6 +166,8 @@ PROVIDER_FACTORIES: dict[str, ProviderFactory] = {
     "lmstudio": _create_lmstudio,
     "llamacpp": _create_llamacpp,
     "ollama": _create_ollama,
+    "openai": _create_openai,
+    "litellm": _create_litellm,
 }
 
 if set(PROVIDER_DESCRIPTORS) != set(SUPPORTED_PROVIDER_IDS) or set(
@@ -174,15 +188,26 @@ def _string_attr(settings: Settings, attr_name: str | None, default: str = "") -
 
 
 def _credential_for(descriptor: ProviderDescriptor, settings: Settings) -> str:
-    if descriptor.static_credential is not None:
-        return descriptor.static_credential
+    # When both a credential_attr and static_credential are set, prefer the
+    # runtime setting (env-var driven) but fall back to the static value so
+    # local proxies without auth still work out of the box.
     if descriptor.credential_attr:
-        return _string_attr(settings, descriptor.credential_attr)
+        attr_value = _string_attr(settings, descriptor.credential_attr)
+        if attr_value and attr_value.strip():
+            return attr_value
+        if descriptor.static_credential is not None:
+            return descriptor.static_credential
+    elif descriptor.static_credential is not None:
+        return descriptor.static_credential
     return ""
 
 
 def _require_credential(descriptor: ProviderDescriptor, credential: str) -> None:
     if descriptor.credential_env is None:
+        return
+    # If a static_credential fallback is configured (local proxy), the env var
+    # is optional — the fallback will always provide a valid credential.
+    if descriptor.static_credential is not None:
         return
     if credential and credential.strip():
         return

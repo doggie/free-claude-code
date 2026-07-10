@@ -252,6 +252,25 @@ FIELDS: tuple[ConfigFieldSpec, ...] = (
         ),
     ),
     ConfigFieldSpec(
+        "OPENAI_API_KEY",
+        "OpenAI API Key",
+        "providers",
+        "secret",
+        settings_attr="openai_api_key",
+        secret=True,
+        description=(
+            "Generic OpenAI-compatible provider API key (use with OPENAI_BASE_URL for a "
+            "custom /chat/completions endpoint)."
+        ),
+    ),
+    ConfigFieldSpec(
+        "OPENAI_BASE_URL",
+        "OpenAI Base URL",
+        "providers",
+        settings_attr="openai_base_url",
+        description="Custom OpenAI-compatible /chat/completions base URL (e.g. http://host:port/v1).",
+    ),
+    ConfigFieldSpec(
         "LM_STUDIO_BASE_URL",
         "LM Studio Base URL",
         "providers",
@@ -271,6 +290,25 @@ FIELDS: tuple[ConfigFieldSpec, ...] = (
         "providers",
         settings_attr="ollama_base_url",
         default="http://localhost:11434",
+    ),
+    ConfigFieldSpec(
+        "LITELLM_API_KEY",
+        "LiteLLM API Key",
+        "providers",
+        "secret",
+        settings_attr="litellm_api_key",
+        secret=True,
+        description=(
+            "API key for the LiteLLM proxy (match your proxy's master_key or "
+            "a created virtual key). Leave empty for open mode (no master_key set)."
+        ),
+    ),
+    ConfigFieldSpec(
+        "LITELLM_BASE_URL",
+        "LiteLLM Base URL",
+        "providers",
+        settings_attr="litellm_base_url",
+        default="http://localhost:4000/v1",
     ),
     ConfigFieldSpec(
         "NVIDIA_NIM_PROXY",
@@ -404,6 +442,15 @@ FIELDS: tuple[ConfigFieldSpec, ...] = (
         "providers",
         "secret",
         settings_attr="cerebras_proxy",
+        secret=True,
+        advanced=True,
+    ),
+    ConfigFieldSpec(
+        "LITELLM_PROXY",
+        "LiteLLM Proxy",
+        "providers",
+        "secret",
+        settings_attr="litellm_proxy",
         secret=True,
         advanced=True,
     ),
@@ -894,6 +941,12 @@ FIELDS: tuple[ConfigFieldSpec, ...] = (
     ConfigFieldSpec(
         "FCC_SMOKE_MODEL_CEREBRAS",
         "Smoke Cerebras Model",
+        "smoke",
+        advanced=True,
+    ),
+    ConfigFieldSpec(
+        "FCC_SMOKE_MODEL_LITELLM",
+        "Smoke LiteLLM Model",
         "smoke",
         advanced=True,
     ),

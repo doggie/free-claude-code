@@ -36,6 +36,9 @@ ZAI_DEFAULT_BASE = "https://api.z.ai/api/anthropic/v1"
 GEMINI_DEFAULT_BASE = "https://generativelanguage.googleapis.com/v1beta/openai/"
 GROQ_DEFAULT_BASE = "https://api.groq.com/openai/v1"
 CEREBRAS_DEFAULT_BASE = "https://api.cerebras.ai/v1"
+# Generic OpenAI-compatible provider (user-supplied base URL)
+OPENAI_DEFAULT_BASE = ""
+LITELLM_DEFAULT_BASE = "http://localhost:4000/v1"
 
 
 @dataclass(frozen=True, slots=True)
@@ -245,6 +248,26 @@ PROVIDER_CATALOG: dict[str, ProviderDescriptor] = {
             "native_anthropic",
             "local",
         ),
+    ),
+    "openai": ProviderDescriptor(
+        provider_id="openai",
+        transport_type="openai_chat",
+        credential_env="OPENAI_API_KEY",
+        credential_attr="openai_api_key",
+        default_base_url=OPENAI_DEFAULT_BASE,
+        base_url_attr="openai_base_url",
+        capabilities=("chat", "streaming", "tools", "thinking", "rate_limit"),
+    ),
+    "litellm": ProviderDescriptor(
+        provider_id="litellm",
+        transport_type="openai_chat",
+        credential_env="LITELLM_API_KEY",
+        credential_attr="litellm_api_key",
+        static_credential="litellm",
+        default_base_url=LITELLM_DEFAULT_BASE,
+        base_url_attr="litellm_base_url",
+        proxy_attr="litellm_proxy",
+        capabilities=("chat", "streaming", "tools", "thinking", "rate_limit", "local"),
     ),
 }
 

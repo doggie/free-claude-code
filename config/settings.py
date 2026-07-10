@@ -114,6 +114,18 @@ class Settings(BaseSettings):
     # ==================== Cerebras Inference (OpenAI-compatible) ====================
     cerebras_api_key: str = Field(default="", validation_alias="CEREBRAS_API_KEY")
 
+    # ==================== Generic OpenAI-compatible Provider ====================
+    openai_api_key: str = Field(default="", validation_alias="OPENAI_API_KEY")
+    openai_base_url: str = Field(default="", validation_alias="OPENAI_BASE_URL")
+
+    # ==================== LiteLLM Config ====================
+    litellm_base_url: str = Field(
+        default="http://localhost:4000/v1",
+        validation_alias="LITELLM_BASE_URL",
+    )
+    litellm_api_key: str = Field(default="", validation_alias="LITELLM_API_KEY")
+    litellm_proxy: str = Field(default="", validation_alias="LITELLM_PROXY")
+
     # ==================== Messaging Platform Selection ====================
     # Valid: "telegram" | "discord" | "none"
     messaging_platform: str = Field(

@@ -1,25 +1,24 @@
-"""LiteLLM proxy provider (OpenAI-compatible chat completions)."""
+"""LiteLLM proxy provider (native Anthropic Messages API)."""
 
 from __future__ import annotations
 
 from typing import Any
 
+from providers.anthropic_messages import AnthropicMessagesTransport
 from providers.base import ProviderConfig
 from providers.defaults import LITELLM_DEFAULT_BASE
-from providers.openai_compat import OpenAIChatTransport
 
 from .request import build_request_body
 
 
-class LiteLLMProvider(OpenAIChatTransport):
-    """LiteLLM proxy using OpenAI-compatible ``/chat/completions`` endpoint."""
+class LiteLLMProvider(AnthropicMessagesTransport):
+    """LiteLLM proxy using native Anthropic-compatible ``/messages`` endpoint."""
 
     def __init__(self, config: ProviderConfig):
         super().__init__(
             config,
             provider_name="LITELLM",
-            base_url=config.base_url or LITELLM_DEFAULT_BASE,
-            api_key=config.api_key,
+            default_base_url=LITELLM_DEFAULT_BASE,
         )
 
     def _build_request_body(

@@ -153,6 +153,8 @@ class Settings(BaseSettings):
     )
 
     # ==================== LiteLLM Config ====================
+    # lite-studio placeholder — LiteLLM uses static_credential so no real key is needed
+    litellm_api_key: str = ""
     litellm_base_url: str = Field(
         default="http://localhost:4000/v1",
         validation_alias="LITELLM_BASE_URL",

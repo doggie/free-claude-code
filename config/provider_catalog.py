@@ -260,14 +260,22 @@ PROVIDER_CATALOG: dict[str, ProviderDescriptor] = {
     ),
     "litellm": ProviderDescriptor(
         provider_id="litellm",
-        transport_type="openai_chat",
+        transport_type="anthropic_messages",
         credential_env="LITELLM_API_KEY",
         credential_attr="litellm_api_key",
         static_credential="litellm",
         default_base_url=LITELLM_DEFAULT_BASE,
         base_url_attr="litellm_base_url",
         proxy_attr="litellm_proxy",
-        capabilities=("chat", "streaming", "tools", "thinking", "rate_limit", "local"),
+        capabilities=(
+            "chat",
+            "streaming",
+            "tools",
+            "thinking",
+            "native_anthropic",
+            "rate_limit",
+            "local",
+        ),
     ),
 }
 

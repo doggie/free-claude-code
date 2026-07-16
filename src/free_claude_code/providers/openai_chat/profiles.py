@@ -248,4 +248,19 @@ OPENAI_CHAT_PROFILES: dict[str, OpenAIChatProfile] = {
         ),
         normalize_base_url=True,
     ),
+    "openai": OpenAIChatProfile(
+        OpenAIChatRequestPolicy(
+            provider_name="OPENAI",
+            default_max_tokens=ANTHROPIC_DEFAULT_MAX_OUTPUT_TOKENS,
+        ),
+        normalize_base_url=True,
+    ),
+    "litellm": OpenAIChatProfile(
+        OpenAIChatRequestPolicy(
+            provider_name="LITELLM",
+            default_max_tokens=ANTHROPIC_DEFAULT_MAX_OUTPUT_TOKENS,
+            include_extra_body=True,
+        ),
+        normalize_base_url=True,
+    ),
 }

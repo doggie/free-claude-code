@@ -70,6 +70,9 @@ def _make_settings(**overrides):
     mock.codestral_proxy = ""
     mock.kimi_proxy = ""
     mock.kimi_api_key = "test_kimi_key"
+    mock.openai_api_key = "test_openai_key"
+    mock.openai_base_url = "https://api.openai.com/v1"
+    mock.litellm_api_key = "test_litellm_key"
     mock.wafer_proxy = ""
     mock.minimax_proxy = ""
     mock.opencode_proxy = ""
@@ -392,6 +395,8 @@ def test_create_provider_instantiates_each_builtin():
         "groq": OpenAIChatProvider,
         "sambanova": OpenAIChatProvider,
         "cerebras": OpenAIChatProvider,
+        "openai": OpenAIChatProvider,
+        "litellm": OpenAIChatProvider,
     }
     sentinel_limiter = MagicMock(spec=ProviderRateLimiter)
 

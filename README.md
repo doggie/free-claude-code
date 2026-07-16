@@ -174,6 +174,8 @@ Enter the listed setting in the Admin UI, open **Model Config**, then search the
 | [LM Studio](https://lmstudio.ai/) | `LM_STUDIO_BASE_URL` | `lmstudio/<model-id>` |
 | [llama.cpp](https://github.com/ggml-org/llama.cpp) | `LLAMACPP_BASE_URL` | `llamacpp/<model-id>` |
 | [Ollama](https://ollama.com/) | `OLLAMA_BASE_URL` | `ollama/<model-tag>` |
+| [LiteLLM](https://docs.litellm.ai/) | `LITELLM_API_KEY` | `litellm/<model-id>` |
+| [Generic OpenAI](https://platform.openai.com/) | `OPENAI_API_KEY` | `openai/<model-id>` |
 
 Important provider notes:
 
@@ -204,6 +206,14 @@ ollama serve
 ```
 
 Use the tag shown by `ollama list` with the `ollama/` prefix. `OLLAMA_BASE_URL` defaults to `http://localhost:11434`; FCC accepts either the root URL or an explicit `/v1` suffix.
+
+### LiteLLM
+
+Start a LiteLLM proxy server with your desired provider models. `LITELLM_BASE_URL` defaults to `http://localhost:4000/v1`. Use the model ID as configured in your LiteLLM config file with the `litellm/` prefix.
+
+### Generic OpenAI
+
+Connect to any OpenAI-compatible API by setting `OPENAI_BASE_URL` to the provider's base URL and `OPENAI_API_KEY` to your API key. Use `openai/<model-id>` with the model name expected by that provider.
 
 </details>
 

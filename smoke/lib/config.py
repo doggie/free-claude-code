@@ -349,7 +349,14 @@ def _normalize_provider_model(provider: str, raw_model: str) -> str:
     prefix = parse_provider_type(model)
     if prefix == provider:
         return model
+    # Allow models with an explicit (possibly different) provider prefix to pass
+    # through — the user may intentionally route a model through a different
+    # OpenAI-compatible endpoint (e.g. openai/gpt-oss-120b via open_router).
     if prefix in SUPPORTED_PROVIDER_IDS:
+        # openai/... models can be routed through open_router since OpenRouter
+        # natively supports OpenAI-format endpoints.
+        if provider == "open_router" and prefix == "openai":
+            return f"{provider}/{model}"
         msg = (
             f"FCC_SMOKE_MODEL_{provider.upper()} must use provider prefix "
             f"{provider!r}, got {model!r}"

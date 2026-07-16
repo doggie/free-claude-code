@@ -582,13 +582,127 @@ def test_assistant_redacted_thinking_omitted_from_openai_chat():
     assert "reasoning_content" not in result[0]
 
 
-def test_convert_user_message_image_raises():
+def test_convert_user_message_image_url_source():
     content = [
         MockBlock(type="image", source={"type": "url", "url": "https://example.com/x"})
     ]
     messages = [MockMessage("user", content)]
-    with pytest.raises(OpenAIConversionError):
-        AnthropicToOpenAIConverter.convert_messages(messages)
+    result = AnthropicToOpenAIConverter.convert_messages(messages)
+    assert len(result) == 1
+    # Multimodal format: list of content parts
+    assert result[0]["role"] == "user"
+    assert isinstance(result[0]["content"], list)
+    assert result[0]["content"][0] == {
+        "type": "image_url",
+        "image_url": {"url": "https://example.com/x"},
+    }
+
+
+def test_convert_user_message_image_base64_source():
+    content = [
+        MockBlock(
+            type="image",
+            source={"type": "base64", "media_type": "image/png", "data": "aGVsbG8="},
+        )
+    ]
+    messages = [MockMessage("user", content)]
+    result = AnthropicToOpenAIConverter.convert_messages(messages)
+    assert len(result) == 1
+    assert isinstance(result[0]["content"], list)
+    assert result[0]["content"][0] == {
+        "type": "image_url",
+        "image_url": {"url": "data:image/png;base64,aGVsbG8="},
+    }
+
+
+def test_convert_user_message_image_jpeg_media_type():
+    content = [
+        MockBlock(
+            type="image",
+            source={"type": "base64", "media_type": "image/jpeg", "data": "imgData"},
+        )
+    ]
+    messages = [MockMessage("user", content)]
+    result = AnthropicToOpenAIConverter.convert_messages(messages)
+    assert result[0]["content"][0] == {
+        "type": "image_url",
+        "image_url": {"url": "data:image/jpeg;base64,imgData"},
+    }
+
+
+def test_convert_user_message_image_with_text():
+    """Text + image in the same user message should produce multimodal content."""
+    content = [
+        MockBlock(type="text", text="Here is an image:"),
+        MockBlock(
+            type="image",
+            source={"type": "base64", "media_type": "image/png", "data": "img123"},
+        ),
+        MockBlock(type="text", text="And some caption."),
+    ]
+    messages = [MockMessage("user", content)]
+    result = AnthropicToOpenAIConverter.convert_messages(messages)
+    assert len(result) == 1
+    parts = result[0]["content"]
+    assert isinstance(parts, list)
+    assert len(parts) == 3
+    assert parts[0] == {"type": "text", "text": "Here is an image:"}
+    assert parts[1] == {
+        "type": "image_url",
+        "image_url": {"url": "data:image/png;base64,img123"},
+    }
+    assert parts[2] == {"type": "text", "text": "And some caption."}
+
+
+def test_convert_user_message_image_no_media_type_defaults_png():
+    """Missing media_type should default to image/png."""
+    content = [
+        MockBlock(
+            type="image",
+            source={"type": "base64", "data": "noMime"},
+        )
+    ]
+    messages = [MockMessage("user", content)]
+    result = AnthropicToOpenAIConverter.convert_messages(messages)
+    assert result[0]["content"][0] == {
+        "type": "image_url",
+        "image_url": {"url": "data:image/png;base64,noMime"},
+    }
+
+
+def test_convert_user_message_text_only_remains_string():
+    """User message with only text blocks should produce string content (not list)."""
+    content = [
+        MockBlock(type="text", text="Hello"),
+        MockBlock(type="text", text="World"),
+    ]
+    messages = [MockMessage("user", content)]
+    result = AnthropicToOpenAIConverter.convert_messages(messages)
+    assert result[0]["content"] == "Hello\nWorld"  # string, not list
+
+
+def test_convert_user_message_image_before_tool_result():
+    """Image + text flushed before tool_result, preserving order."""
+    content = [
+        MockBlock(type="text", text="See this:"),
+        MockBlock(
+            type="image",
+            source={"type": "url", "url": "https://example.com/img.png"},
+        ),
+        MockBlock(type="tool_result", tool_use_id="t1", content="tool output"),
+    ]
+    messages = [MockMessage("user", content)]
+    result = AnthropicToOpenAIConverter.convert_messages(messages)
+    assert len(result) == 2
+    assert result[0]["role"] == "user"
+    assert isinstance(result[0]["content"], list)
+    assert result[0]["content"][0] == {"type": "text", "text": "See this:"}
+    assert result[0]["content"][1] == {
+        "type": "image_url",
+        "image_url": {"url": "https://example.com/img.png"},
+    }
+    assert result[1]["role"] == "tool"
+    assert result[1]["tool_call_id"] == "t1"
 
 
 def test_convert_assistant_text_after_tool_use_splits_for_openai_chat():

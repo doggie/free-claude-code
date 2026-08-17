@@ -260,6 +260,10 @@ OPENAI_CHAT_PROFILES: dict[str, OpenAIChatProfile] = {
             provider_name="LITELLM",
             default_max_tokens=ANTHROPIC_DEFAULT_MAX_OUTPUT_TOKENS,
             include_extra_body=True,
+            # LiteLLM often fronts local llama.cpp models (e.g. Qwen) whose chat
+            # template requires the system message to be first; consolidate any
+            # inline system messages into a single leading one.
+            consolidate_system_messages=True,
         ),
         normalize_base_url=True,
     ),

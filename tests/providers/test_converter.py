@@ -7,8 +7,10 @@ from free_claude_code.core.anthropic import (
     OpenAIConversionError,
     ReasoningReplayMode,
     build_base_request_body,
+    consolidate_system_messages,
 )
 from free_claude_code.core.anthropic.models import MessagesRequest
+from free_claude_code.providers.openai_chat.profiles import OPENAI_CHAT_PROFILES
 
 # --- Mock Classes ---
 
@@ -1411,3 +1413,79 @@ def test_convert_assistant_server_tool_blocks_raise(content) -> None:
     messages = [MockMessage("assistant", content)]
     with pytest.raises(OpenAIConversionError, match="server tool"):
         AnthropicToOpenAIConverter.convert_messages(messages)
+
+
+# --- consolidate_system_messages (opt-in; default off) ---
+
+
+def test_consolidate_system_messages_merges_inline_into_leading() -> None:
+    messages = [
+        {"role": "system", "content": "Top system"},
+        {"role": "user", "content": "hi"},
+        {"role": "system", "content": "Inline: available agent types"},
+    ]
+    result = consolidate_system_messages(messages)
+    assert [m["role"] for m in result] == ["system", "user"]
+    assert result[0]["content"] == "Top system\n\nInline: available agent types"
+    assert result[1] == {"role": "user", "content": "hi"}
+
+
+def test_consolidate_system_messages_noop_when_single_leading() -> None:
+    messages = [
+        {"role": "system", "content": "Top"},
+        {"role": "user", "content": "hi"},
+    ]
+    assert consolidate_system_messages(messages) is messages
+
+
+def test_consolidate_system_messages_no_system() -> None:
+    messages = [
+        {"role": "user", "content": "hi"},
+        {"role": "assistant", "content": "yo"},
+    ]
+    assert consolidate_system_messages(messages) is messages
+
+
+def test_litellm_profile_consolidates_inline_system() -> None:
+    profile = OPENAI_CHAT_PROFILES["litellm"]
+    assert profile.request_policy.consolidate_system_messages is True
+
+    body = build_base_request_body(
+        MessagesRequest.model_validate(
+            {
+                "model": "local-emi",
+                "system": "Top system",
+                "messages": [
+                    {"role": "user", "content": "hi"},
+                    {"role": "system", "content": "Inline: agent types"},
+                ],
+            }
+        )
+    )
+    messages = consolidate_system_messages(body["messages"])
+    assert [m["role"] for m in messages] == ["system", "user"]
+    assert messages[0]["content"] == "Top system\n\nInline: agent types"
+
+
+def test_openai_profile_does_not_consolidate_inline_system() -> None:
+    profile = OPENAI_CHAT_PROFILES["openai"]
+    assert profile.request_policy.consolidate_system_messages is False
+    # Default (non-litellm) providers keep inline system messages in place so
+    # OpenAI prompt-caching prefixes are preserved.
+    body = build_base_request_body(
+        MessagesRequest.model_validate(
+            {
+                "model": "gpt",
+                "system": "Top system",
+                "messages": [
+                    {"role": "user", "content": "hi"},
+                    {"role": "system", "content": "Inline: agent types"},
+                ],
+            }
+        )
+    )
+    assert [m["role"] for m in body["messages"]] == [
+        "system",
+        "user",
+        "system",
+    ]

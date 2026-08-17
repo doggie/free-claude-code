@@ -9,7 +9,10 @@ from loguru import logger
 
 from free_claude_code.application.errors import InvalidRequestError
 from free_claude_code.core.anthropic import ReasoningReplayMode, build_base_request_body
-from free_claude_code.core.anthropic.conversion import OpenAIConversionError
+from free_claude_code.core.anthropic.conversion import (
+    OpenAIConversionError,
+    consolidate_system_messages,
+)
 from free_claude_code.core.anthropic.models import MessagesRequest
 
 MaxTokensField = Literal["max_tokens", "max_completion_tokens"]
@@ -31,6 +34,10 @@ class OpenAIChatRequestPolicy:
     strip_message_names: bool = False
     unsupported_body_keys: frozenset[str] = field(default_factory=frozenset)
     normalize_n_to_one: bool = False
+    # Opt-in: merge every system/developer message into a single leading system
+    # message. Off by default to preserve OpenAI prompt-caching prefix behavior;
+    # enable for backends whose chat template requires the system message first.
+    consolidate_system_messages: bool = False
 
 
 def build_openai_chat_request_body(
@@ -107,6 +114,9 @@ def _apply_common_openai_chat_policy(
 
     if policy.normalize_n_to_one and body.get("n") is not None:
         body["n"] = 1
+
+    if policy.consolidate_system_messages and isinstance(body.get("messages"), list):
+        body["messages"] = consolidate_system_messages(body["messages"])
 
 
 def _strip_message_names(messages: Any) -> None:

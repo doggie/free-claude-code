@@ -654,6 +654,55 @@ class AnthropicToOpenAIConverter:
         return {"role": "system", "content": system_text}
 
 
+def consolidate_system_messages(messages: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    """Merge all system/developer messages into a single leading system message.
+
+    Anthropic allows a ``role="system"`` message anywhere in the array, but some
+    OpenAI-compatible backends (e.g. the Qwen chat template in llama.cpp) require the
+    system message to be the very first message and raise otherwise. This is an
+    *opt-in* transform: when enabled it collapses every system/developer message into
+    one leading message. The relative order of the non-system messages is preserved and
+    the merged text keeps the original order of the system fragments.
+    """
+    if not messages:
+        return messages
+    system_positions = [
+        i
+        for i, message in enumerate(messages)
+        if message.get("role") in ("system", "developer")
+    ]
+    if not system_positions:
+        return messages
+    if len(system_positions) == 1 and system_positions[0] == 0:
+        return messages
+
+    def _text(message: dict[str, Any]) -> str:
+        content = message.get("content")
+        if isinstance(content, str):
+            return content
+        if isinstance(content, list):
+            return "\n".join(
+                str(block.get("text", ""))
+                for block in content
+                if isinstance(block, dict) and block.get("text")
+            )
+        return ""
+
+    merged_parts = [
+        text
+        for text in (_text(messages[i]) for i in system_positions)
+        if text
+    ]
+    kept = [
+        message
+        for message in messages
+        if message.get("role") not in ("system", "developer")
+    ]
+    if merged_parts:
+        kept.insert(0, {"role": "system", "content": "\n\n".join(merged_parts)})
+    return kept
+
+
 def build_base_request_body(
     request_data: MessagesRequest,
     *,

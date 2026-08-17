@@ -6,6 +6,7 @@ from .conversion import (
     OpenAIConversionError,
     ReasoningReplayMode,
     build_base_request_body,
+    consolidate_system_messages,
 )
 from .errors import (
     anthropic_error_payload,
@@ -86,6 +87,7 @@ __all__ = [
     "anthropic_request_snapshot",
     "anthropic_status_for_error_type",
     "build_base_request_body",
+    "consolidate_system_messages",
     "dump_messages_request",
     "extract_text_from_content",
     "format_sse_event",
